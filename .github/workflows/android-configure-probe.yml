@@ -35,7 +35,7 @@ jobs:
 
       - name: Install pinned Android packages
         run: |
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmake;3.31.6" "ndk;29.0.14206865"
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmake;3.31.6" "ndk;30.0.16248370"
 
       - name: Verify pinned source
         run: |
@@ -43,5 +43,5 @@ jobs:
 
       - name: Run Android CMake configure probe
         env:
-          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/29.0.14206865
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/30.0.16248370
         run: bash scripts/configure_android_probe.sh

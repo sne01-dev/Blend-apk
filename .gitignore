@@ -1,0 +1,14 @@
+upstream/
+build/
+android/build/
+android/.cxx/
+.gradle/
+**/build/
+*.apk
+*.aab
+*.so
+*.o
+*.a
+CMakeCache.txt
+CMakeFiles/
+compile_commands.json

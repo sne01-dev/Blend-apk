@@ -11,6 +11,7 @@ PATCHES=(
   "$PATCH_DIR/0001-cmake-add-android-platform-selection.patch"
   "$PATCH_DIR/0002-ghost-add-android-backend-selection.patch"
   "$PATCH_DIR/0003-ghost-add-android-system-window-skeleton.patch"
+  "$PATCH_DIR/0004-vulkan-add-android-surface-foundation.patch"
 )
 
 for patch in "${PATCHES[@]}"; do

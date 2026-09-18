@@ -11,11 +11,7 @@ diff --git a/intern/ghost/intern/GHOST_ContextVK.hh b/intern/ghost/intern/GHOST_
 +#  endif
  #  ifdef WITH_GHOST_WAYLAND
  #    include "GHOST_SystemWayland.hh"
-@@ -41,6 +44,7 @@ enum GHOST_TVulkanPlatformType {
-   GHOST_kVulkanPlatformHeadless = 0,
- #ifdef WITH_GHOST_X11
-   GHOST_kVulkanPlatformX11 = 1,
- #endif
+@@ -45,6 +48,9 @@ enum GHOST_TVulkanPlatformType {
  #ifdef WITH_GHOST_WAYLAND
    GHOST_kVulkanPlatformWayland = 2,
  #endif
@@ -23,7 +19,7 @@ diff --git a/intern/ghost/intern/GHOST_ContextVK.hh b/intern/ghost/intern/GHOST_
 +  GHOST_kVulkanPlatformAndroid = 3,
 +#endif
  };
-@@ -91,6 +95,9 @@ class GHOST_ContextVK : public GHOST_Context {
+@@ -91,6 +97,9 @@ class GHOST_ContextVK : public GHOST_Context {
  #elif defined(__APPLE__)
                    void *metal_layer,
 +#elif defined(__ANDROID__)
@@ -31,7 +27,7 @@ diff --git a/intern/ghost/intern/GHOST_ContextVK.hh b/intern/ghost/intern/GHOST_
 +                  ANativeWindow *native_window,
  #else
                    GHOST_TVulkanPlatformType platform,
-@@ -136,6 +143,9 @@ class GHOST_ContextVK : public GHOST_Context {
+@@ -136,6 +145,9 @@ class GHOST_ContextVK : public GHOST_Context {
  #elif defined(__APPLE__)
    /* Is CAMetalLayer* */
    void *metal_layer_;
@@ -49,51 +45,89 @@ diff --git a/intern/ghost/intern/GHOST_ContextVK.cc b/intern/ghost/intern/GHOST_
 +#elif defined(__ANDROID__)
 +#  define VK_USE_PLATFORM_ANDROID_KHR
  #else
-@@ -875,6 +877,9 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
+@@ -879,6 +881,9 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
  #elif defined(__APPLE__)
                                   void *metal_layer,
 +#elif defined(__ANDROID__)
 +                                 GHOST_TVulkanPlatformType platform,
 +                                 ANativeWindow *native_window,
  #else
-@@ -890,6 +895,9 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
+@@ -894,6 +899,9 @@ GHOST_ContextVK::GHOST_ContextVK(const GHOST_ContextParams &context_params,
  #elif defined(__APPLE__)
        metal_layer_(metal_layer),
 +#elif defined(__ANDROID__)
 +      platform_(platform),
 +      native_window_(native_window),
  #else
-@@ -1260,6 +1268,9 @@ std::vector<const char *> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
- #elif defined(__APPLE__)
-   extensions.push_back(VK_EXT_METAL_SURFACE_EXTENSION_NAME);
-+#elif defined(__ANDROID__)
-+  extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
- #else /* UNIX/Linux */
-@@ -1300,6 +1311,12 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
+@@ -1738,6 +1746,9 @@ std::vector<const char *> GHOST_ContextVK::getPlatformSpecificSurfaceExtensions() const
+ #ifdef WITH_GHOST_WAYLAND
+     case GHOST_kVulkanPlatformWayland:
+       extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+       break;
+ #endif
++#ifdef __ANDROID__
++    case GHOST_kVulkanPlatformAndroid:
++      extensions.push_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
++      break;
++#endif
+     case GHOST_kVulkanPlatformHeadless:
+       break;
+@@ -1750,6 +1761,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
  #elif defined(__APPLE__)
    const bool use_window_surface = (metal_layer_ != nullptr);
 +#elif defined(__ANDROID__)
 +  const bool use_window_surface = (native_window_ != nullptr);
  #else /* UNIX/Linux */
-@@ -1335,6 +1352,15 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
-+#ifdef __ANDROID__
-+  if (use_window_surface) {
+@@ -1820,6 +1833,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
+ #elif defined(__APPLE__)
+     VkMetalSurfaceCreateInfoEXT info = {};
+     info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+@@ -1829,6 +1850,14 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
+     VK_CHECK(volk::vkCreateMetalSurfaceEXT(instance_vk.vk_instance, &info, nullptr, &surface_),
+              GHOST_kFailure);
++#elif defined(__ANDROID__)
 +    VkAndroidSurfaceCreateInfoKHR surface_create_info = {};
 +    surface_create_info.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
 +    surface_create_info.window = native_window_;
 +    VK_CHECK(volk::vkCreateAndroidSurfaceKHR(
 +                 instance_vk.vk_instance, &surface_create_info, nullptr, &surface_),
 +             GHOST_kFailure);
-+  }
-+#endif
-+
+ #else
+diff --git a/intern/ghost/intern/GHOST_WindowAndroid.hh b/intern/ghost/intern/GHOST_WindowAndroid.hh
+--- a/intern/ghost/intern/GHOST_WindowAndroid.hh
++++ b/intern/ghost/intern/GHOST_WindowAndroid.hh
+@@ -19,6 +19,7 @@ class GHOST_WindowAndroid : public GHOST_WindowNULL {
+                       GHOST_TWindowState state,
+                       const GHOST_IWindow *parent_window,
+                       GHOST_TDrawingContextType type,
+                       const GHOST_ContextParams &context_params,
+-                      ANativeWindow *native_window);
++                      ANativeWindow *native_window,
++                      const GHOST_GPUDevice &preferred_device);
+@@ -28,6 +29,7 @@ class GHOST_WindowAndroid : public GHOST_WindowNULL {
+   }
+ 
+  private:
+   ANativeWindow *native_window_ = nullptr;
++  GHOST_GPUDevice preferred_device_;
+ };
 diff --git a/intern/ghost/intern/GHOST_WindowAndroid.cc b/intern/ghost/intern/GHOST_WindowAndroid.cc
 --- a/intern/ghost/intern/GHOST_WindowAndroid.cc
 +++ b/intern/ghost/intern/GHOST_WindowAndroid.cc
-@@ -4,6 +4,10 @@
- #include "GHOST_WindowAndroid.hh"
-+#include "GHOST_ContextVK.hh"
-@@ -24,3 +28,24 @@
+@@ -17,7 +17,8 @@ GHOST_WindowAndroid::GHOST_WindowAndroid(const char *title,
+                                          GHOST_TWindowState state,
+                                          const GHOST_IWindow *parent_window,
+                                          GHOST_TDrawingContextType type,
+                                          const GHOST_ContextParams &context_params,
+-                                         ANativeWindow *native_window)
++                                         ANativeWindow *native_window,
++                                         const GHOST_GPUDevice &preferred_device)
+     : GHOST_WindowNULL(
+           title, left, top, width, height, state, parent_window, type, context_params),
+-      native_window_(native_window)
++      native_window_(native_window), preferred_device_(preferred_device)
+ {
+@@ -28,3 +29,23 @@ GHOST_WindowAndroid::~GHOST_WindowAndroid()
    if (native_window_) {
      ANativeWindow_release(native_window_);
    }
@@ -109,7 +143,8 @@ diff --git a/intern/ghost/intern/GHOST_WindowAndroid.cc b/intern/ghost/intern/GH
 +        native_window_,
 +        1,
 +        3,
-+        GHOST_GPUDevice());
++        preferred_device_,
++        &hdr_info_);
 +    if (context->initializeDrawingContext()) {
 +      return context;
 +    }
@@ -118,3 +153,14 @@ diff --git a/intern/ghost/intern/GHOST_WindowAndroid.cc b/intern/ghost/intern/GH
 +#endif
 +  return nullptr;
 +}
+diff --git a/intern/ghost/intern/GHOST_SystemAndroid.cc b/intern/ghost/intern/GHOST_SystemAndroid.cc
+--- a/intern/ghost/intern/GHOST_SystemAndroid.cc
++++ b/intern/ghost/intern/GHOST_SystemAndroid.cc
+@@ -62,6 +62,7 @@ GHOST_IWindow *GHOST_SystemAndroid::createWindow(const char *title,
+                                  parent_window,
+                                  gpu_settings.context_type,
+                                  context_params,
+-                                 native_window_);
++                                 native_window_,
++                                 gpu_settings.preferred_device);
+ }

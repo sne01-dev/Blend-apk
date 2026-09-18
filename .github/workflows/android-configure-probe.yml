@@ -49,13 +49,13 @@ jobs:
         run: |
           test "$(git -C upstream/blender rev-parse HEAD)" = "73d7b5f6362f5fb1b16526854b920ab719d4c65a"
 
-      - name: Validate Android Vulkan SDK surface prerequisites
+      - name: Validate Android Vulkan headers and platform loader
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/30.0.16248370
         run: |
           test -f "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/vulkan/vulkan.h"
           test -f "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/vulkan/vulkan_android.h"
-          test -e "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libvulkan.so"
+          test -e "$ANDROID_HOME/platforms/android-35/arch-arm64/usr/lib/libvulkan.so"
 
       - name: Validate and apply Android source patches
         env:

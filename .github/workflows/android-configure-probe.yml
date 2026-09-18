@@ -12,6 +12,8 @@ jobs:
   configure:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      ANDROID_PORT_PATCHSET_REV: "2"
     steps:
       - name: Checkout Android project
         uses: actions/checkout@v4
@@ -34,7 +36,6 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: ""
-
 
       - name: Install pinned Android packages
         run: |

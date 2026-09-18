@@ -1,0 +1,16 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d051096076ee186cce229427abc0e1a26466c304..ANDROIDPORT000000000000000000000000000000000000000 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1180,7 +1180,9 @@ include(build_files/cmake/platform/platform_apple.cmake)
+ 
+ # -------------------------------------------------------------------------------
+ # Platform specific settings
+ 
+-if(UNIX AND NOT APPLE)
++if(ANDROID)
++  include(build_files/cmake/platform/platform_android.cmake)
++elseif(UNIX AND NOT APPLE)
+   include(build_files/cmake/platform/platform_unix.cmake)
+ elseif(WIN32)
+   include(build_files/cmake/platform/platform_win32.cmake)

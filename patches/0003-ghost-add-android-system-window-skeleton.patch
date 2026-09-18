@@ -1,0 +1,218 @@
+diff --git a/intern/ghost/CMakeLists.txt b/intern/ghost/CMakeLists.txt
+--- a/intern/ghost/CMakeLists.txt
++++ b/intern/ghost/CMakeLists.txt
+@@ -90,7 +90,21 @@ if(WITH_INPUT_NDOF)
+ list(APPEND SRC
+   intern/GHOST_SystemHeadless.hh
+   intern/GHOST_WindowNULL.hh
+ )
+ 
+-if(WITH_HEADLESS)
++if(ANDROID)
++  list(APPEND SRC
++    intern/GHOST_SystemAndroid.cc
++    intern/GHOST_WindowAndroid.cc
++
++    intern/GHOST_SystemAndroid.hh
++    intern/GHOST_WindowAndroid.hh
++  )
++  add_definitions(-DWITH_GHOST_ANDROID)
++  list(APPEND LIB
++    PUBLIC android
++  )
++elseif(WITH_HEADLESS)
+   add_definitions(-DWITH_HEADLESS)
+ elseif(WITH_GHOST_SDL)
+diff --git a/intern/ghost/intern/GHOST_SystemAndroid.hh b/intern/ghost/intern/GHOST_SystemAndroid.hh
+new file mode 100644
+--- /dev/null
++++ b/intern/ghost/intern/GHOST_SystemAndroid.hh
+@@ -0,0 +1,63 @@
++/* SPDX-FileCopyrightText: 2026 Blender Authors
++ *
++ * SPDX-License-Identifier: GPL-2.0-or-later */
++
++#pragma once
++
++#include "GHOST_SystemHeadless.hh"
++
++#include <android/native_window.h>
++
++class GHOST_SystemAndroid : public GHOST_SystemHeadless {
++ public:
++  explicit GHOST_SystemAndroid(bool /*background*/) : GHOST_SystemHeadless() {}
++  ~GHOST_SystemAndroid() override = default;
++
++  GHOST_TSuccess init() override;
++
++  GHOST_TSuccess setNativeWindow(ANativeWindow *window);
++  void clearNativeWindow();
++
++  GHOST_IWindow *createWindow(const char *title,
++                              int32_t left,
++                              int32_t top,
++                              uint32_t width,
++                              uint32_t height,
++                              GHOST_TWindowState state,
++                              GHOST_GPUSettings gpu_settings,
++                              const bool exclusive,
++                              const bool is_dialog,
++                              const GHOST_IWindow *parent_window) override;
++
++  void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
++  void getAllDisplayDimensions(uint32_t &width, uint32_t &height) const override;
++
++ private:
++  ANativeWindow *native_window_ = nullptr;
++};
+diff --git a/intern/ghost/intern/GHOST_WindowAndroid.hh b/intern/ghost/intern/GHOST_WindowAndroid.hh
+new file mode 100644
+--- /dev/null
++++ b/intern/ghost/intern/GHOST_WindowAndroid.hh
+@@ -0,0 +1,40 @@
++/* SPDX-FileCopyrightText: 2026 Blender Authors
++ *
++ * SPDX-License-Identifier: GPL-2.0-or-later */
++
++#pragma once
++
++#include "GHOST_WindowNULL.hh"
++
++#include <android/native_window.h>
++
++class GHOST_WindowAndroid : public GHOST_WindowNULL {
++ public:
++  GHOST_WindowAndroid(const char *title,
++                      int32_t left,
++                      int32_t top,
++                      uint32_t width,
++                      uint32_t height,
++                      GHOST_TWindowState state,
++                      const GHOST_IWindow *parent_window,
++                      GHOST_TDrawingContextType type,
++                      const GHOST_ContextParams &context_params,
++                      ANativeWindow *native_window);
++  ~GHOST_WindowAndroid() override;
++
++  ANativeWindow *nativeWindow() const
++  {
++    return native_window_;
++  }
++
++ private:
++  ANativeWindow *native_window_ = nullptr;
++};
+diff --git a/intern/ghost/intern/GHOST_SystemAndroid.cc b/intern/ghost/intern/GHOST_SystemAndroid.cc
+new file mode 100644
+--- /dev/null
++++ b/intern/ghost/intern/GHOST_SystemAndroid.cc
+@@ -0,0 +1,84 @@
++/* SPDX-FileCopyrightText: 2026 Blender Authors
++ *
++ * SPDX-License-Identifier: GPL-2.0-or-later */
++
++#include "GHOST_SystemAndroid.hh"
++
++#include "GHOST_WindowAndroid.hh"
++
++GHOST_TSuccess GHOST_SystemAndroid::init()
++{
++  return GHOST_SystemHeadless::init();
++}
++
++GHOST_TSuccess GHOST_SystemAndroid::setNativeWindow(ANativeWindow *window)
++{
++  if (native_window_ == window) {
++    return GHOST_kSuccess;
++  }
++
++  if (window) {
++    ANativeWindow_acquire(window);
++  }
++  if (native_window_) {
++    ANativeWindow_release(native_window_);
++  }
++  native_window_ = window;
++  return GHOST_kSuccess;
++}
++
++void GHOST_SystemAndroid::clearNativeWindow()
++{
++  setNativeWindow(nullptr);
++}
++
++void GHOST_SystemAndroid::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
++{
++  if (native_window_) {
++    width = uint32_t(ANativeWindow_getWidth(native_window_));
++    height = uint32_t(ANativeWindow_getHeight(native_window_));
++    return;
++  }
++  width = height = 0;
++}
++
++void GHOST_SystemAndroid::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
++{
++  getMainDisplayDimensions(width, height);
++}
++
++GHOST_IWindow *GHOST_SystemAndroid::createWindow(const char *title,
++                                                  int32_t left,
++                                                  int32_t top,
++                                                  uint32_t width,
++                                                  uint32_t height,
++                                                  GHOST_TWindowState state,
++                                                  GHOST_GPUSettings gpu_settings,
++                                                  const bool /*exclusive*/,
++                                                  const bool /*is_dialog*/,
++                                                  const GHOST_IWindow *parent_window)
++{
++  const GHOST_ContextParams context_params = GHOST_CONTEXT_PARAMS_FROM_GPU_SETTINGS(
++      gpu_settings);
++  return new GHOST_WindowAndroid(title,
++                                 left,
++                                 top,
++                                 width,
++                                 height,
++                                 state,
++                                 parent_window,
++                                 gpu_settings.context_type,
++                                 context_params,
++                                 native_window_);
++}
+diff --git a/intern/ghost/intern/GHOST_WindowAndroid.cc b/intern/ghost/intern/GHOST_WindowAndroid.cc
+new file mode 100644
+--- /dev/null
++++ b/intern/ghost/intern/GHOST_WindowAndroid.cc
+@@ -0,0 +1,29 @@
++/* SPDX-FileCopyrightText: 2026 Blender Authors
++ *
++ * SPDX-License-Identifier: GPL-2.0-or-later */
++
++#include "GHOST_WindowAndroid.hh"
++
++GHOST_WindowAndroid::GHOST_WindowAndroid(const char *title,
++                                         int32_t left,
++                                         int32_t top,
++                                         uint32_t width,
++                                         uint32_t height,
++                                         GHOST_TWindowState state,
++                                         const GHOST_IWindow *parent_window,
++                                         GHOST_TDrawingContextType type,
++                                         const GHOST_ContextParams &context_params,
++                                         ANativeWindow *native_window)
++    : GHOST_WindowNULL(
++          title, left, top, width, height, state, parent_window, type, context_params),
++      native_window_(native_window)
++{
++  if (native_window_) {
++    ANativeWindow_acquire(native_window_);
++  }
++}
++
++GHOST_WindowAndroid::~GHOST_WindowAndroid()
++{
++  if (native_window_) {
++    ANativeWindow_release(native_window_);
++  }
++}

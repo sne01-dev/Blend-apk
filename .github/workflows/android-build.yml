@@ -33,12 +33,12 @@ jobs:
 
       - name: Install pinned Android packages
         run: |
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmake;3.31.6" "ndk;29.0.14206865"
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmake;3.31.6" "ndk;30.0.16248370"
 
       - name: Verify source and toolchain
         run: |
           test "$(git -C upstream/blender rev-parse HEAD)" = "73d7b5f6362f5fb1b16526854b920ab719d4c65a"
           cmake --version
           ninja --version
-          "$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version
+          "$ANDROID_HOME/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version
           echo "Pinned Blender source and Android toolchain are available."

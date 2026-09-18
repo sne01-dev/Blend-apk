@@ -1,8 +1,4 @@
 # Android platform configuration for the Blender Android port.
-#
-# This file is intentionally minimal. Dependency discovery and Android-specific
-# GHOST integration will be added only after the platform-selection boundary
-# is proven by CMake configuration.
 
 message(STATUS "Configuring Blender for Android")
 
@@ -21,9 +17,8 @@ set(WITH_CODEC_FFMPEG OFF CACHE BOOL "" FORCE)
 set(WITH_CODEC_SNDFILE OFF CACHE BOOL "" FORCE)
 set(WITH_INPUT_NDOF OFF CACHE BOOL "" FORCE)
 
-# These are temporary bootstrap restrictions, not final feature decisions.
-# The Android application will later restore Python, Vulkan and the supported
-# Blender feature set after Android-native dependencies are available.
+# Bootstrap defaults. Android-specific probes may explicitly enable these
+# features once their native dependencies are available.
 set(WITH_PYTHON OFF CACHE BOOL "" FORCE)
 set(WITH_OPENGL_BACKEND OFF CACHE BOOL "" FORCE)
-set(WITH_VULKAN_BACKEND OFF CACHE BOOL "" FORCE)
+set(WITH_VULKAN_BACKEND OFF CACHE BOOL "")

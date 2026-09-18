@@ -2,6 +2,8 @@ name: Android native configure probe
 
 on:
   workflow_dispatch:
+  push:
+    branches: [android-port]
 
 permissions:
   contents: read

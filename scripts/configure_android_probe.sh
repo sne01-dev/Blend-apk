@@ -22,6 +22,8 @@ fi
 test -d "$SRC_DIR/.git"
 test "$(git -C "$SRC_DIR" rev-parse HEAD)" = "$BLENDER_COMMIT"
 
+"$ROOT_DIR/scripts/apply_android_patches.sh"
+
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 

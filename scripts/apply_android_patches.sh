@@ -6,9 +6,18 @@ SRC_DIR="$ROOT_DIR/upstream/blender"
 PATCH_DIR="$ROOT_DIR/patches"
 
 test -d "$SRC_DIR/.git"
-test -f "$PATCH_DIR/0001-cmake-add-android-platform-selection.patch"
 
-git -C "$SRC_DIR" apply --check "$PATCH_DIR/0001-cmake-add-android-platform-selection.patch"
-git -C "$SRC_DIR" apply "$PATCH_DIR/0001-cmake-add-android-platform-selection.patch"
+PATCHES=(
+  "$PATCH_DIR/0001-cmake-add-android-platform-selection.patch"
+  "$PATCH_DIR/0002-ghost-add-android-backend-selection.patch"
+  "$PATCH_DIR/0003-ghost-add-android-system-window-skeleton.patch"
+)
 
-echo "Applied Android platform-selection patch to pinned Blender source."
+for patch in "${PATCHES[@]}"; do
+  test -f "$patch"
+  git -C "$SRC_DIR" apply --check "$patch"
+  git -C "$SRC_DIR" apply "$patch"
+  echo "Applied: $(basename "$patch")"
+done
+
+echo "Applied all Android source patches to pinned Blender source."

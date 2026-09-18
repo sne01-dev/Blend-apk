@@ -56,7 +56,7 @@ jobs:
         run: |
           test -f "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/vulkan/vulkan.h"
           test -f "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/vulkan/vulkan_android.h"
-          find "$ANDROID_HOME" -path '*libvulkan.so' -print -quit | grep -q .
+          find "$ANDROID_HOME/platforms" -name libvulkan.so -print -quit | grep -q .
 
       - name: Validate and apply Android source patches
         env:

@@ -1,0 +1,44 @@
+name: Android build probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-toolchain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Android project
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned Blender source
+        uses: actions/checkout@v4
+        with:
+          repository: blender/blender
+          ref: 73d7b5f6362f5fb1b16526854b920ab719d4c65a
+          path: upstream/blender
+          fetch-depth: 1
+          lfs: true
+
+      - name: Install host tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build python3 python3-pip cmake git-lfs
+
+      - name: Install Android SDK/NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install pinned Android packages
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "cmake;3.31.6" "ndk;29.0.14206865"
+
+      - name: Verify source and toolchain
+        run: |
+          test "$(git -C upstream/blender rev-parse HEAD)" = "73d7b5f6362f5fb1b16526854b920ab719d4c65a"
+          cmake --version
+          ninja --version
+          "$ANDROID_HOME/ndk/29.0.14206865/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" --version
+          echo "Pinned Blender source and Android toolchain are available."

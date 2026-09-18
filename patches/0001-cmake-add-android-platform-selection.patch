@@ -1,11 +1,9 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index d051096076ee186cce229427abc0e1a26466c304..ANDROIDPORT000000000000000000000000000000000000000 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1180,7 +1180,9 @@ include(build_files/cmake/platform/platform_apple.cmake)
- 
- # -------------------------------------------------------------------------------
- # Platform specific settings
+@@ -1562,7 +1562,9 @@
+ # - WIN32
+ # - APPLE
  
 -if(UNIX AND NOT APPLE)
 +if(ANDROID)
@@ -14,3 +12,36 @@ index d051096076ee186cce229427abc0e1a26466c304..ANDROIDPORT000000000000000000000
    include(build_files/cmake/platform/platform_unix.cmake)
  elseif(WIN32)
    include(build_files/cmake/platform/platform_win32.cmake)
++
++diff --git a/build_files/cmake/platform/platform_android.cmake b/build_files/cmake/platform/platform_android.cmake
++new file mode 100644
++--- /dev/null
+++++ b/build_files/cmake/platform/platform_android.cmake
++@@ -0,0 +1,27 @@
++# Android platform configuration for the Blender Android port.
++#
++# This file is intentionally minimal. Dependency discovery and Android-specific
++# GHOST integration will be added only after the platform-selection boundary
++# is proven by CMake configuration.
++
++message(STATUS "Configuring Blender for Android")
++
++set(WITH_LIBS_PRECOMPILED OFF CACHE BOOL "" FORCE)
++
++# Android uses the NDK/Bionic runtime and must not enter Blender's desktop
++# Unix platform dependency discovery.
++set(WITH_SYSTEM_FREETYPE ON CACHE BOOL "" FORCE)
++set(WITH_GHOST_X11 OFF CACHE BOOL "" FORCE)
++set(WITH_GHOST_WAYLAND OFF CACHE BOOL "" FORCE)
++set(WITH_GHOST_SDL OFF CACHE BOOL "" FORCE)
++set(WITH_GHOST_DBUS OFF CACHE BOOL "" FORCE)
++set(WITH_XR_OPENXR OFF CACHE BOOL "" FORCE)
++set(WITH_OPENAL OFF CACHE BOOL "" FORCE)
++set(WITH_CODEC_FFMPEG OFF CACHE BOOL "" FORCE)
++set(WITH_CODEC_SNDFILE OFF CACHE BOOL "" FORCE)
++set(WITH_INPUT_NDOF OFF CACHE BOOL "" FORCE)
++
++# Temporary bootstrap restrictions.
++set(WITH_PYTHON OFF CACHE BOOL "" FORCE)
++set(WITH_OPENGL_BACKEND OFF CACHE BOOL "" FORCE)
++set(WITH_VULKAN_BACKEND OFF CACHE BOOL "" FORCE)

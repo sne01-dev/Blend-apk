@@ -33,12 +33,12 @@ cmake -S "$SRC_DIR" -B "$BUILD_DIR" -G Ninja \
   -DANDROID_PLATFORM="android-$ANDROID_PLATFORM" \
   -DCMAKE_BUILD_TYPE=Debug \
   -DWITH_LIBS_PRECOMPILED=OFF \
-  -DWITH_HEADLESS=ON \
+  -DWITH_HEADLESS=OFF \
   -DWITH_GHOST_X11=OFF \
   -DWITH_GHOST_WAYLAND=OFF \
   -DWITH_GHOST_SDL=OFF \
   -DWITH_OPENGL_BACKEND=OFF \
-  -DWITH_VULKAN_BACKEND=OFF \
+  -DWITH_VULKAN_BACKEND=ON \
   -DWITH_PYTHON=OFF \
   -DWITH_CODEC_FFMPEG=OFF \
   -DWITH_CODEC_SNDFILE=OFF \
@@ -59,5 +59,5 @@ cmake -S "$SRC_DIR" -B "$BUILD_DIR" -G Ninja \
   -DWITH_XR_OPENXR=OFF \
   -DWITH_GMP=OFF
 
-echo "Android CMake configure probe completed."
+echo "Android Vulkan CMake configure probe completed."
 echo "Build directory: $BUILD_DIR"

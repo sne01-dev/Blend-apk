@@ -23,7 +23,7 @@ jobs:
           ref: 73d7b5f6362f5fb1b16526854b920ab719d4c65a
           path: upstream/blender
           fetch-depth: 1
-          lfs: true
+          lfs: false
 
       - name: Install host tools
         run: |

@@ -1,0 +1,25 @@
+diff --git a/intern/ghost/intern/GHOST_ISystem.cc b/intern/ghost/intern/GHOST_ISystem.cc
+--- a/intern/ghost/intern/GHOST_ISystem.cc
++++ b/intern/ghost/intern/GHOST_ISystem.cc
+@@ -10,6 +10,8 @@
+ #include "GHOST_ISystem.hh"
+ #include "GHOST_SystemHeadless.hh"
+ 
++#if defined(__ANDROID__)
++#  include "GHOST_SystemAndroid.hh"
++#endif
++
+ #if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
+ #  include "GHOST_SystemWayland.hh"
+@@ -30,6 +32,10 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool background)
+ 
+   GHOST_TSuccess success;
+   if (!system_) {
++#if defined(__ANDROID__)
++    backends_attempted.push_back({"ANDROID"});
++    system_ = new GHOST_SystemAndroid(background);
++#elif defined(WITH_HEADLESS)
++    /* Pass. */
+-#if defined(WITH_HEADLESS)
+-    /* Pass. */
+ #elif defined(WITH_GHOST_WAYLAND)
